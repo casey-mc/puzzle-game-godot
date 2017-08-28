@@ -1,0 +1,38 @@
+[gd_scene load_steps=5 format=1]
+
+[ext_resource path="res://tiles/BaseTile.tscn" type="PackedScene" id=1]
+[ext_resource path="res://tiles/Tiles_Land.tex" type="Texture" id=2]
+[ext_resource path="res://tiles/scripts/Rock.gd" type="Script" id=3]
+
+[sub_resource type="RectangleShape2D" id=1]
+
+custom_solver_bias = 0.0
+extents = Vector2( 10, 10 )
+
+[node name="Rock" instance=ExtResource( 1 )]
+
+texture = ExtResource( 2 )
+modulate = Color( 0.0352478, 0.902344, 0.882021, 1 )
+region = true
+region_rect = Rect2( 60, 0, 20, 20 )
+script/script = ExtResource( 3 )
+tileType = 3
+
+[node name="Area2D" type="Area2D" parent="."]
+
+input/pickable = true
+shapes/0/shape = SubResource( 1 )
+shapes/0/transform = Matrix32( 1, 0, 0, 1, 0, 0 )
+shapes/0/trigger = true
+gravity_vec = Vector2( 0, 1 )
+gravity = 98.0
+linear_damp = 0.1
+angular_damp = 1.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+
+shape = SubResource( 1 )
+trigger = true
+_update_shape_index = 0
+
+

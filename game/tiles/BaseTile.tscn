@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=1]
+
+[ext_resource path="res://tiles/scripts/BaseTile.gd" type="Script" id=1]
+
+[node name="BaseTile" type="Sprite"]
+
+script/script = ExtResource( 1 )
+tileType = 0
+tileMapPos = Vector2( 0, 0 )
+
+
