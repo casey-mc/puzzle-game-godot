@@ -6,7 +6,9 @@ extends Node2D
 #var NodeArray=[]
 
 # for scene in /tiles, preload
-onready var sceneArray = [preload("res://tiles/Sea.tscn"),preload("res://tiles/Land.tscn"),preload("res://tiles/Bridge_NS.tscn"),preload("res://tiles/Rock.tscn")]
+onready var sceneArray = [preload("res://tiles/Sea.tscn"),preload("res://tiles/Land.tscn"),
+preload("res://tiles/Bridge.tscn"),preload("res://tiles/Rock.tscn"),
+preload("res://tiles/SeaRocks.tscn")]
 onready var TileMap = get_node("TileMap")
 onready var Char = get_node("../Char")
 onready var localBox = {} #Dictionary defined as (x,y):Node where x and y are TileMap coordinates
@@ -62,16 +64,15 @@ func nodeify(mapPos, type):
 	return
 
 # Takes in a global mouse position, returns the node at location or null if not in localBox
-# TODO: What if there is a tile but not a node at the position?
 func returnNode(globalPos):
 	var mapPos = TileMap.world_to_map(globalPos)
 	if (!localBox.keys().has(mapPos)):
 		nodeify(mapPos, TileMap.get_cellv(mapPos))
 	return localBox[mapPos]
 
-func get_north(node):
+func get_adj_node(node, vector):
 	var pos = node.get_tileMapPos()
-	pos = pos + Vector2(0,-1)
+	pos = pos + vector
 	if (!localBox.keys().has(pos)):
 		nodeify(pos, TileMap.get_cellv(pos))
 	return localBox[pos]

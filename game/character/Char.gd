@@ -10,6 +10,7 @@ onready var ownedRocks = []
 onready var Timer = get_node("Timer")
 onready var Resources = get_node("../Resources")
 onready var rockAmount = 0
+onready var resources = 0
 #onready var selectionBox = false
 
 func _fixed_process(delta):
@@ -61,15 +62,23 @@ func _on_Area2D_input_event( viewport, event, shape_idx ):
 			create_bridge(node) #This function handles getting the tile positions and creating the bridges
 
 func create_bridge(node):
-	var node2 = NodeMap.get_north(node)
-	var node3 = NodeMap.get_north(node2)
-	print(node2.get_tileType())
-	print(node3.get_tileType())
-	if (node.get_tileType() == 0 and node2.get_tileType() == 0 and node3.get_tileType() == 0):
+	var north = Vector2(0,-1)
+	var south = Vector2(0,1)
+	var node2 = NodeMap.get_adj_node(node, north)
+	var node3 = NodeMap.get_adj_node(node2, north)
+	var node4 = NodeMap.get_adj_node(node, south)
+	if (node.get_tileType() == 0 and node2.get_tileType() == 0 and node3.get_tileType() == 0 and
+			(node4.get_tileType() == 1 or node4.get_tileType() == 2)):
 		NodeMap.placeTile(node.get_tileMapPos(), 2)
 		NodeMap.placeTile(node2.get_tileMapPos(), 2)
 		NodeMap.placeTile(node3.get_tileMapPos(), 2)
 		
+
+
+func _new_resource(thisischar, resource):
+	resource.queue_free()
+	resources = resources + 1
+	print(resources)
 	
 func _ownRock(thisischar, rock):
 	if rock.get_owned() == false:
