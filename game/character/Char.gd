@@ -1,17 +1,40 @@
 extends KinematicBody2D
 
 # TODO: Set this as a function of Tile size
-const WALK_SPEED = 50
+const WALK_SPEED = 100
 
 var velocity = Vector2()
 onready var NodeMap = get_node("../NodeMap")
 onready var TileMap = get_node("../NodeMap/TileMap")
 onready var ownedRocks = []
-onready var Timer = get_node("Timer")
-onready var Resources = get_node("../Resources")
+onready var timer = get_node("Timer")
+onready var Resources = get_node("../HUD/Resources")
 onready var rockAmount = 0
 onready var resources = 0
-#onready var selectionBox = false
+onready var bridgePattern0 = preload("res://tiles/bridepattern0.tscn")
+onready var turningBridge = preload("res://tiles/TurningBridge.tscn")
+# Bridge patterns:
+# Patterns are {relativemappos:[[accepted tiles], final tile]}
+# (0,0) is click position
+# -1 in final tile means tile is unchanged
+# Pattern0 checks 1 south of click position and 7 north
+#onready var bridgePattern0 = {
+#                              Vector2(0,1):[[1, 2],-1],
+#                              Vector2(0,0):[[0], 2],
+#                              Vector2(0,-1):[[0], 2],
+#                              Vector2(0,-2):[[0], 2],
+#                              Vector2(0,-3):[[0], 2],
+#                              Vector2(0,-4):[[0], 2],
+#                              Vector2(0,-5):[[0], 2],
+#                              Vector2(0,-6):[[0], 2]
+#                              }
+# Pattern 1 checks 1 left of click position and 3 right
+#onready var bridgePattern1 = {
+#                                Vector2(-1,0):[[1, 2], -1],
+#                                Vector2(0,0):[[0], 2],
+#                                Vector2(1,0):[[0], 2],
+#                                Vector2(2,0):[[0], 2]
+#                             }
 
 func _fixed_process(delta):
 
@@ -46,7 +69,7 @@ func _input(ev):
 			selection_box(false)
 
 func _ready():
-    Timer.start()
+    timer.start()
     set_fixed_process(true)
     set_process_input(true)
 
@@ -55,27 +78,25 @@ func _on_Area2D_input_event( viewport, event, shape_idx ):
 	var tileType # TileMap index at click location
    
    # Get location of click (and tile type) in TileMap coordinates
-	if (event.type==InputEvent.MOUSE_BUTTON):
+	if (event.type==InputEvent.MOUSE_BUTTON and event.is_pressed()):
 		var node = NodeMap.returnNode(get_global_mouse_pos())
 		tileType = node.get_tileType()
+		var newNode
 		if (tileType == 0):
-			create_bridge(node) #This function handles getting the tile positions and creating the bridges
+			if (NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(0,1)).get_tileType() == NodeMap.TILES.LAND):
+				var newBridge = bridgePattern0.instance()
+				newBridge.init(NodeMap)
+				add_child(newBridge)
+				newBridge.play("build",node.get_tileMapPos())
+			elif (NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(1,0)).get_tileType() == NodeMap.TILES.BRIDGE):
+				newNode = NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(1,0))
+				newNode.remove_child(newNode.get_node("StaticBody2D"))
+				var newBridge = turningBridge.instance()
+				newBridge.init(NodeMap)
+				add_child(newBridge)
+				newBridge.play("build", node.get_tileMapPos())
 
-func create_bridge(node):
-	var north = Vector2(0,-1)
-	var south = Vector2(0,1)
-	var node2 = NodeMap.get_adj_node(node, north)
-	var node3 = NodeMap.get_adj_node(node2, north)
-	var node4 = NodeMap.get_adj_node(node, south)
-	if (node.get_tileType() == 0 and node2.get_tileType() == 0 and node3.get_tileType() == 0 and
-			(node4.get_tileType() == 1 or node4.get_tileType() == 2)):
-		NodeMap.placeTile(node.get_tileMapPos(), 2)
-		NodeMap.placeTile(node2.get_tileMapPos(), 2)
-		NodeMap.placeTile(node3.get_tileMapPos(), 2)
-		
-
-
-func _new_resource(thisischar, resource):
+func _new_resource(char, resource):
 	resource.queue_free()
 	resources = resources + 1
 	print(resources)

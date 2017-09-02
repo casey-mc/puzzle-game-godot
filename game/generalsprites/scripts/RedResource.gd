@@ -5,6 +5,6 @@ extends Sprite
 # var b = "textvar"
 
 func _ready():
-	var char = get_node("../Char")
+	var char = get_node("../../Char")
 	var colChild = get_node("Area2D")
 	colChild.connect("body_enter", char, "_new_resource", [self])

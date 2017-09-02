@@ -6,13 +6,16 @@ extends Node2D
 #var NodeArray=[]
 
 # for scene in /tiles, preload
+# needs wall tile
 onready var sceneArray = [preload("res://tiles/Sea.tscn"),preload("res://tiles/Land.tscn"),
-preload("res://tiles/Bridge.tscn"),preload("res://tiles/Rock.tscn"),
-preload("res://tiles/SeaRocks.tscn")]
+							preload("res://tiles/Bridge.tscn"),preload("res://tiles/Rock.tscn"),
+							preload("res://tiles/SeaRocks.tscn"), preload("res://tiles/TurningBridgeTile.tscn")]
+enum TILES {SEA, LAND, BRIDGE, ROCK, SEAROCKS, TURNINGBRIDGETILE}
 onready var TileMap = get_node("TileMap")
 onready var Char = get_node("../Char")
 onready var localBox = {} #Dictionary defined as (x,y):Node where x and y are TileMap coordinates
 onready var localPos
+onready var bridgePattern0 = preload("res://tiles/bridepattern0.tscn")
 
 func _fixed_process(delta):
 	update_localBox()
@@ -69,6 +72,11 @@ func returnNode(globalPos):
 	if (!localBox.keys().has(mapPos)):
 		nodeify(mapPos, TileMap.get_cellv(mapPos))
 	return localBox[mapPos]
+	
+func returnNode_by_mappos(mapPos):
+	if (!localBox.keys().has(mapPos)):
+		nodeify(mapPos, TileMap.get_cellv(mapPos))
+	return localBox[mapPos]
 
 func get_adj_node(node, vector):
 	var pos = node.get_tileMapPos()
@@ -89,16 +97,18 @@ func placeTile(mapPos, tileType):
 			nodeify(mapPos, tileType)
 
 func _select(which):
-	var nodeBridge = sceneArray[2].instance()
+	var nodeBridge = bridgePattern0.instance()
+#	nodeBridge.set_pos(TileMap.map_to_world(which.get_tileMapPos())+Vector2(10,10))
+	nodeBridge.add_to_group("outline")
+	nodeBridge.init(self)
 	which.add_child(nodeBridge)
-	nodeBridge.set_opacity(.5)
+	nodeBridge.play("outline",0)
 	
 func _deselect(which):
-#	var bridge = which.get_node("Bridge_NS") #TODO: Handle different bridge types. Or tiles altogether.
-	var bridge = which.get_child(2)
-	#which.remove_child(bridge)
-	if (bridge != null):
-		bridge.queue_free()
+	for node in which.get_children():
+		if node.get_groups().has("outline"):
+			node.stop("outline")
+			which.remove_child(node)
 
 
 func _ready():

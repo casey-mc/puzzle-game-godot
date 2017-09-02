@@ -20,6 +20,7 @@ region = true
 region_rect = Rect2( 0, 0, 20, 20 )
 script/script = ExtResource( 2 )
 tileType = 0
+tileMapPos = Vector2( 0, 0 )
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 
