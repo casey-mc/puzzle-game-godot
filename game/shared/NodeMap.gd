@@ -9,13 +9,21 @@ extends Node2D
 # needs wall tile
 onready var sceneArray = [preload("res://tiles/Sea.tscn"),preload("res://tiles/Land.tscn"),
 							preload("res://tiles/Bridge.tscn"),preload("res://tiles/Rock.tscn"),
-							preload("res://tiles/SeaRocks.tscn"), preload("res://tiles/TurningBridgeTile.tscn")]
-enum TILES {SEA, LAND, BRIDGE, ROCK, SEAROCKS, TURNINGBRIDGETILE}
+							preload("res://tiles/SeaRocks.tscn"), preload("res://tiles/TurningBridgeTile.tscn"),
+							preload("res://tiles/RandomBridge.tscn")]
+enum TILES {SEA, LAND, BRIDGE, ROCK, SEAROCKS, TURNINGBRIDGETILE, RANDOMBRIDGE}
+const NORTH = Vector2(0,-1)
+const SOUTH = Vector2(0,1)
+const EAST = Vector2(1,0)
+const WEST = Vector2(-1,0)
 onready var TileMap = get_node("TileMap")
 onready var Char = get_node("../Char")
 onready var localBox = {} #Dictionary defined as (x,y):Node where x and y are TileMap coordinates
 onready var localPos
 onready var bridgePattern0 = preload("res://tiles/bridepattern0.tscn")
+var tileSize
+# NESW:
+onready var compass = [Vector2(0,-1),Vector2(1,0), Vector2(0,1), Vector2(-1,0)]
 
 func _fixed_process(delta):
 	update_localBox()
@@ -78,15 +86,11 @@ func returnNode_by_mappos(mapPos):
 		nodeify(mapPos, TileMap.get_cellv(mapPos))
 	return localBox[mapPos]
 
-func get_adj_node(node, vector):
-	var pos = node.get_tileMapPos()
-	pos = pos + vector
-	if (!localBox.keys().has(pos)):
-		nodeify(pos, TileMap.get_cellv(pos))
-	return localBox[pos]
-
 func get_mapPos(pos):
 	return TileMap.world_to_map(pos)
+	
+func get_worldPos(pos):
+	return TileMap.map_to_world(pos)
 
 func placeTile(mapPos, tileType):
 	if (localBox.keys().has(mapPos)):
@@ -95,6 +99,16 @@ func placeTile(mapPos, tileType):
 		else:
 			de_nodeify(mapPos)
 			nodeify(mapPos, tileType)
+
+# Get nodes adjacent to map pos
+# Returns a dictionary 
+func get_adj_nodes(pos):
+	var ret = {}
+	ret[NORTH] = returnNode_by_mappos(pos+NORTH)
+	ret[SOUTH] = returnNode_by_mappos(pos+SOUTH)
+	ret[EAST] = returnNode_by_mappos(pos+EAST)
+	ret[WEST] = returnNode_by_mappos(pos+WEST)
+	return ret
 
 func _select(which):
 	var nodeBridge = bridgePattern0.instance()
@@ -112,5 +126,6 @@ func _deselect(which):
 
 
 func _ready():
+	tileSize = TileMap.get_cell_size()
 	set_fixed_process(true)
 	set_process_input(true)

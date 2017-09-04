@@ -94,4 +94,11 @@ texture = ExtResource( 1 )
 region = true
 region_rect = Rect2( 100, 0, 20, 20 )
 
+[node name="RandomBridge" type="Sprite" parent="."]
+
+transform/pos = Vector2( 240, 0 )
+texture = ExtResource( 1 )
+region = true
+region_rect = Rect2( 120, 0, 20, 20 )
+
 

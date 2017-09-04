@@ -31,7 +31,6 @@ func get_next_pos(lastPos):
 func play(anim, pos):
 	if (anim == "outline"):
 		outlineBridge = bridge.instance()
-		outlineBridge.remove_child(outlineBridge.get_node("StaticBody2D"))
 		outlineBridge.set_opacity(.5)
 		add_child(outlineBridge)
 	elif (anim == "build"):
@@ -54,6 +53,7 @@ func stop(anim):
 
 func init(nodeMapPath):
 	NodeMap = nodeMapPath
+	
 
 func _ready():
 	# Reset status of node

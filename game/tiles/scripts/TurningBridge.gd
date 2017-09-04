@@ -10,7 +10,7 @@ var BUILD_SPEED = 1
 var NodeMap
 var initPos
 var keys = []
-var orientation = Vector2(-1,0)
+var orientation
 
 func build_bridge(pos):
 	print("Placing tile at ", pos)
@@ -19,7 +19,7 @@ func build_bridge(pos):
 func get_next_pos(lastPos):
 	#uses last_pos to calculate new pos
 	#Check left down and then up
-	if orientation == Vector2(-1,0):
+	if orientation == Vector2(-1,0) or orientation == Vector2(1,0):
 		if NodeMap.returnNode_by_mappos(lastPos+orientation).get_tileType() == NodeMap.TILES.SEA:
 			return lastPos + orientation
 		elif NodeMap.returnNode_by_mappos(lastPos+Vector2(0,-1)).get_tileType() == NodeMap.TILES.SEA:
@@ -34,9 +34,10 @@ func get_next_pos(lastPos):
 	return "error"
 
 	
-func play(anim, pos):
+func play(anim, pos, orient):
 	if anim == "build":
 		initPos = pos
+		orientation = orient
 		var buildAnim = Animation.new()
 		var track1 = buildAnim.add_track(Animation.TYPE_METHOD, 0)
 		buildAnim.set_length(LENGTH)
