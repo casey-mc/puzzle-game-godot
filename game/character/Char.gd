@@ -11,13 +11,10 @@ onready var timer = get_node("Timer")
 onready var Resources = get_node("../HUD/Resources")
 onready var rockAmount = 0
 onready var resources = 0
-onready var bridgePattern0 = preload("res://tiles/bridepattern0.tscn")
-onready var turningBridge = preload("res://tiles/TurningBridge.tscn")
-onready var randomBridge = preload("res://tiles/RandomBridgePattern.tscn")
 var highlighted_plus
+onready var bridgesArray = [preload("res://tiles/bridepattern0.tscn"), preload("res://tiles/TurningBridge.tscn"), preload("res://tiles/RandomBridgePattern.tscn")]
 var adjNodes
 var selecting = false
-var posGrid
 var targetDirection
 var isMoving
 var targetPos
@@ -38,10 +35,20 @@ func _fixed_process(delta):
 				if highlighted_plus == node:
 					highlighted_plus = null
 			else:
-				if highlighted_plus == node:
-					highlighted_plus.set_modulate(Color(.9,.9,.9))
-				else:
+				if node != highlighted_plus:
 					node.set_modulate(Color(.5,.5,.5))
+	
+	# TODO: Here, play outline for selected bridge type
+	if (highlighted_plus != null):
+		var wr = weakref(highlighted_plus);
+		if (!wr.get_ref()):
+		     print("erased")
+		else:
+		    #object is fine so you can do something with it:
+		    wr.get_ref().set_modulate(Color(.9,.9,.9))
+#			highlighted_plus.set_modulate(Color(.9,.9,.9))
+			#Wait a second, and then play outline for current bridge selection
+		
 	
 	if (Input.is_action_pressed("player_left")):
 	    direction.x = -1
@@ -98,13 +105,7 @@ func _input(ev):
 	var highlightDirection = Vector2(0,0)
 	if (ev.type==InputEvent.KEY):
 		if (Input.is_action_pressed("ui_shift")):
-			#TODO: Detect if player is moving. If player is moving, update this box.
-			# If Shift is held, get adj nodes and highlight them if theyare SEA nodes
 			selecting = true
-			# Arrow keys are used to EXTRA highlight a node
-			# That node plays the outline animation for the default bridge
-			# Player can press a button to switch bridge type
-			# If player pressed SPACE, bridge is built, resource is decrimented
 			selection_box(true)
 		elif(ev.is_action_released("ui_shift")):
 			for node in adjNodes.values():
@@ -130,8 +131,7 @@ func _input(ev):
 			var newHighlight = adjNodes[highlightDirection]
 			if newHighlight != highlighted_plus:
 				highlighted_plus = newHighlight
-				# Here, play outline for selected bridge type
-		
+
 		# Here, build new bridge type
 		if (ev.is_action_pressed("ui_accept") and selecting == true and highlighted_plus != null):
 			var map_pos = Vector2() #position of click in TileMap coordinates
@@ -141,13 +141,13 @@ func _input(ev):
 			var newNode
 			var adjNode
 			if (NodeMap.returnNode_by_mappos(highlighted_plus.get_tileMapPos()+Vector2(0,1)).get_tileType() == NodeMap.TILES.LAND):
-				var newBridge = bridgePattern0.instance()
+				var newBridge = bridgesArray[0].instance()
 				newBridge.init(NodeMap)
 				add_child(newBridge)
 				newBridge.play("build",highlighted_plus.get_tileMapPos())
 			# Check left and right of bridge
 			elif (NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(-1,0)).get_tileType() == NodeMap.TILES.BRIDGE):
-				var newBridge = randomBridge.instance()
+				var newBridge = bridgesArray[2].instance()
 				newBridge.init(NodeMap)
 				add_child(newBridge)
 				newBridge.play("build", node.get_tileMapPos(), Vector2(1,0))
@@ -157,51 +157,18 @@ func _input(ev):
 					adjNode = Vector2(1,0)
 				elif (NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(-1,0)).get_tileType() == NodeMap.TILES.BRIDGE):
 					adjNode = Vector2(-1,0)
-				var newBridge = turningBridge.instance()
+				var newBridge = bridgesArray[1].instance()
 				newBridge.init(NodeMap)
 				add_child(newBridge)
 				newBridge.play("build", node.get_tileMapPos(), -adjNode)
+			highlighted_plus = null
 
 func _ready():
 	timer.start()
-	adjNodes = NodeMap.get_adj_nodes(NodeMap.get_mapPos(get_pos()))
-	posGrid = Vector2(6,4)
-	set_pos(NodeMap.get_worldPos(posGrid)+NodeMap.tileSize/2)
+	set_pos(NodeMap.get_worldPos(Vector2(6,4))+NodeMap.tileSize/2)
 	set_fixed_process(true)
 	set_process_input(true)
 
-func _on_Area2D_input_event( viewport, event, shape_idx ):
-	var map_pos = Vector2() #position of click in TileMap coordinates
-	var tileType # TileMap index at click location
-   
-   # Get location of click (and tile type) in TileMap coordinates
-	if (event.type==InputEvent.MOUSE_BUTTON and event.is_pressed()):
-		var node = NodeMap.returnNode(get_global_mouse_pos())
-		tileType = node.get_tileType()
-		var newNode
-		var adjNode
-		if (tileType == 0):
-			if (NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(0,1)).get_tileType() == NodeMap.TILES.LAND):
-				var newBridge = bridgePattern0.instance()
-				newBridge.init(NodeMap)
-				add_child(newBridge)
-				newBridge.play("build",node.get_tileMapPos())
-			# Check left and right of bridge
-			elif (NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(-1,0)).get_tileType() == NodeMap.TILES.BRIDGE):
-				var newBridge = randomBridge.instance()
-				newBridge.init(NodeMap)
-				add_child(newBridge)
-				newBridge.play("build", node.get_tileMapPos(), Vector2(1,0))
-			elif (NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(1,0)).get_tileType() == NodeMap.TILES.BRIDGE or
-			NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(-1,0)).get_tileType() == NodeMap.TILES.BRIDGE):
-				if (NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(1,0)).get_tileType() == NodeMap.TILES.BRIDGE):
-					adjNode = Vector2(1,0)
-				elif (NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(-1,0)).get_tileType() == NodeMap.TILES.BRIDGE):
-					adjNode = Vector2(-1,0)
-				var newBridge = turningBridge.instance()
-				newBridge.init(NodeMap)
-				add_child(newBridge)
-				newBridge.play("build", node.get_tileMapPos(), -adjNode)
 
 func _new_resource(char, resource):
 	resource.queue_free()

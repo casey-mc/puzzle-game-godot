@@ -4,53 +4,47 @@ extends Node2D
 # var a = 2
 # var b = "textvar"
 onready var bridge = preload("res://tiles/TurningBridgeTile.tscn")
-onready var animPlayer = get_node("AnimationPlayer")
+onready var myTween = get_node("Tween")
 var LENGTH = 8
 var BUILD_SPEED = 1
 var NodeMap
 var initPos
-var keys = []
-var orientation
+var initialDirection
+var direction
+var lastPos
 
-func build_bridge(pos):
-	print("Placing tile at ", pos)
-	NodeMap.placeTile(pos, NodeMap.TILES.TURNINGBRIDGETILE)
+func build_bridge():
+	var firstPos = lastPos
+	# Get tileTypes of adjacent nodes
+	var adjNodes = NodeMap.get_adj_nodes(lastPos)
+	if direction == NodeMap.EAST or direction == NodeMap.WEST:
+		if adjNodes[direction].get_tileType() == 0:
+			lastPos = lastPos + direction
+		elif adjNodes[NodeMap.NORTH].get_tileType() == 0:
+			lastPos = lastPos + NodeMap.NORTH
+			direction = NodeMap.NORTH
+		elif adjNodes[NodeMap.SOUTH].get_tileType() == 0:
+			lastPos = lastPos + NodeMap.SOUTH
+			direction = NodeMap.SOUTH
+	elif direction == NodeMap.NORTH or direction == NodeMap.SOUTH:
+		if adjNodes[direction].get_tileType() == 0:
+			lastPos = lastPos + direction
 	
-func get_next_pos(lastPos):
-	#uses last_pos to calculate new pos
-	#Check left down and then up
-	if orientation == Vector2(-1,0) or orientation == Vector2(1,0):
-		if NodeMap.returnNode_by_mappos(lastPos+orientation).get_tileType() == NodeMap.TILES.SEA:
-			return lastPos + orientation
-		elif NodeMap.returnNode_by_mappos(lastPos+Vector2(0,-1)).get_tileType() == NodeMap.TILES.SEA:
-			orientation = Vector2(0,-1)
-			return lastPos + Vector2(0,-1)
-		elif NodeMap.returnNode_by_mappos(lastPos+Vector2(0,1)).get_tileType() == NodeMap.TILES.SEA:
-			orientation = Vector2(0,1)
-			return lastPos + Vector2(0,1)
-	elif orientation == Vector2(0,1) or orientation == Vector2(0,-1):
-		if NodeMap.returnNode_by_mappos(lastPos+orientation).get_tileType() == NodeMap.TILES.SEA:
-			return lastPos + orientation
-	return "error"
+	if (firstPos == lastPos):
+		myTween.stop(self, "build_bridge")
+		return
+	
+	NodeMap.placeTile(lastPos, NodeMap.TILES.TURNINGBRIDGETILE)
 
 	
-func play(anim, pos, orient):
-	if anim == "build":
-		initPos = pos
-		orientation = orient
-		var buildAnim = Animation.new()
-		var track1 = buildAnim.add_track(Animation.TYPE_METHOD, 0)
-		buildAnim.set_length(LENGTH)
-		var tempPos = pos
+func play(anim, pos, orientation):
+	if (anim == "build"):
+		initialDirection = orientation
+		direction = orientation
+		lastPos = pos - direction
 		for i in range(0,LENGTH):
-			buildAnim.track_insert_key(0, i*BUILD_SPEED, {"method": "build_bridge", "args": [tempPos]})
-			var ret = get_next_pos(tempPos)
-			if typeof(ret) == TYPE_STRING and ret == "error":
-				print("Bridge cannot go further")
-				break
-			tempPos = ret
-		animPlayer.add_animation("build", buildAnim)
-	animPlayer.play(anim)
+			myTween.interpolate_callback(self, i*BUILD_SPEED, "build_bridge")
+		myTween.start()
 
 func init(nodeMapPath):
 	NodeMap = nodeMapPath
