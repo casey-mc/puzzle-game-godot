@@ -12,6 +12,7 @@ var BUILD_SPEED = 1
 onready var myTween = get_node("Tween")
 
 func build_bridge():
+	NodeMap.placeTile(lastPos, NodeMap.TILES.RANDOMBRIDGE)
 	# Get tileTypes of adjacent nodes
 	# For Nodes that are type SEA, give them an equal chance to be the next direction
 	# Give the node that was the last direction a 20% bigger chance than the other two
@@ -59,7 +60,6 @@ func build_bridge():
 		for key in chanceDict: 
 			realChoice = key
 	lastPos = lastPos+realChoice
-	NodeMap.placeTile(lastPos, NodeMap.TILES.RANDOMBRIDGE)
 	
 
 func play(anim, pos, orientation):
@@ -67,8 +67,8 @@ func play(anim, pos, orientation):
 		initialDirection = orientation
 		direction = orientation
 		lastPos = pos
-		NodeMap.placeTile(lastPos, NodeMap.TILES.RANDOMBRIDGE)
-		for i in range(1,LENGTH):
+#		NodeMap.placeTile(lastPos, NodeMap.TILES.RANDOMBRIDGE)
+		for i in range(0,LENGTH):
 			myTween.interpolate_callback(self, i*BUILD_SPEED, "build_bridge")
 		myTween.start()
 

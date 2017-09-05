@@ -31,7 +31,6 @@ func _fixed_process(delta):
 func update_localBox():
 	var charPos = Char.get_pos()
 	var mapPos = TileMap.world_to_map(charPos)
-	var charArea = get_node("../Char/Area2D/CollisionShape2D")
 	var playerBox = []
 	if (localPos == mapPos):
 		return
@@ -49,6 +48,8 @@ func update_localBox():
 
 func de_nodeify(mapPos):
 	var node = localBox[mapPos]
+	if node == Char.highlighted_plus:
+		Char.highlighted_plus = null
 	node.get_tileType()
 	TileMap.set_cellv(mapPos, node.get_tileType())
 	localBox.erase(mapPos)
@@ -109,20 +110,23 @@ func get_adj_nodes(pos):
 	ret[EAST] = returnNode_by_mappos(pos+EAST)
 	ret[WEST] = returnNode_by_mappos(pos+WEST)
 	return ret
-
-func _select(which):
-	var nodeBridge = bridgePattern0.instance()
-#	nodeBridge.set_pos(TileMap.map_to_world(which.get_tileMapPos())+Vector2(10,10))
-	nodeBridge.add_to_group("outline")
-	nodeBridge.init(self)
-	which.add_child(nodeBridge)
-	nodeBridge.play("outline",0)
 	
-func _deselect(which):
-	for node in which.get_children():
-		if node.get_groups().has("outline"):
-			node.stop("outline")
-			which.remove_child(node)
+func get_adj_node(pos, dir):
+	return returnNode_by_mappos(pos + dir)
+
+#func _select(which):
+#	var nodeBridge = bridgePattern0.instance()
+#	nodeBridge.set_pos(TileMap.map_to_world(which.get_tileMapPos())+Vector2(10,10))
+#	nodeBridge.add_to_group("outline")
+#	nodeBridge.init(self)
+#	which.add_child(nodeBridge)
+#	nodeBridge.play("outline",0)
+#	
+#func _deselect(which):
+#	for node in which.get_children():
+#		if node.get_groups().has("outline"):
+#			node.stop("outline")
+#			which.remove_child(node)
 
 
 func _ready():

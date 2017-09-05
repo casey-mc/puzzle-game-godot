@@ -94,26 +94,26 @@ func _fixed_process(delta):
 	# Display UI
 	Resources.set_text(String(rockAmount))
 
-func selection_box(enable):
-	var box = get_node("Area2D/SelectionBox")
-	if (enable == true):
-		box.set_opacity(.75)
-	elif (enable == false):
-		box.set_opacity(0)
 
 func _input(ev):
 	var highlightDirection = Vector2(0,0)
 	if (ev.type==InputEvent.KEY):
-		if (Input.is_action_pressed("ui_shift")):
+		# Camera stuff
+		# TODO: Animate this property with a tween
+		if (ev.is_action_pressed("player_zoom")):
+			get_node("Camera2D").set_zoom(Vector2(2,2))
+		elif (ev.is_action_released("player_zoom")):
+			get_node("Camera2D").set_zoom(Vector2(1,1))
+		
+		# Building/selection stuff
+		if (ev.is_action_pressed("ui_shift")):
 			selecting = true
-			selection_box(true)
 		elif(ev.is_action_released("ui_shift")):
 			for node in adjNodes.values():
 				if node.get_tileType() == 0:
 					node.set_modulate(Color(1,1,1))
 			highlighted_plus = null
 			selecting = false
-			selection_box(false)
 		if(ev.is_action_pressed("ui_left") and selecting == true):
 			if adjNodes[NodeMap.WEST].get_tileType() == 0:
 				highlightDirection = NodeMap.WEST
@@ -140,7 +140,8 @@ func _input(ev):
 			tileType = node.get_tileType()
 			var newNode
 			var adjNode
-			if (NodeMap.returnNode_by_mappos(highlighted_plus.get_tileMapPos()+Vector2(0,1)).get_tileType() == NodeMap.TILES.LAND):
+			if (NodeMap.returnNode_by_mappos(highlighted_plus.get_tileMapPos()+NodeMap.SOUTH).get_tileType() == NodeMap.TILES.LAND):
+				print("Build Bridge")
 				var newBridge = bridgesArray[0].instance()
 				newBridge.init(NodeMap)
 				add_child(newBridge)
