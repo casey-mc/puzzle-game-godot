@@ -47,12 +47,10 @@ func build_bridge():
 	# Right now it's a little too random. It should want to choose tiles in a way that avoids huge blocks
 	randomize()
 	var choice = rand_range(0,1)
-	print("Random number is: ",choice)
 	var total = 0
 	var realChoice
 	for x in chanceDict:
 		total = total + chanceDict[x]
-		print("Total is: %f at index %s" % [total, x])
 		if choice <= total:
 			realChoice = x
 			break

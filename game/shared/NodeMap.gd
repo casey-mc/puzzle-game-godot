@@ -12,11 +12,12 @@ onready var sceneArray = [preload("res://tiles/Sea.tscn"),preload("res://tiles/L
 							preload("res://tiles/SeaRocks.tscn"), preload("res://tiles/TurningBridgeTile.tscn"),
 							preload("res://tiles/RandomBridge.tscn")]
 enum TILES {SEA, LAND, BRIDGE, ROCK, SEAROCKS, TURNINGBRIDGETILE, RANDOMBRIDGE}
+const sourceTiles = [TILES.BRIDGE, TILES.TURNINGBRIDGETILE, TILES.RANDOMBRIDGE]
 const NORTH = Vector2(0,-1)
 const SOUTH = Vector2(0,1)
 const EAST = Vector2(1,0)
 const WEST = Vector2(-1,0)
-onready var TileMap = get_node("TileMap")
+onready var myTileMap = get_node("TileMap")
 onready var Char = get_node("../Char")
 onready var localBox = {} #Dictionary defined as (x,y):Node where x and y are TileMap coordinates
 onready var localPos
@@ -30,7 +31,7 @@ func _fixed_process(delta):
 
 func update_localBox():
 	var charPos = Char.get_pos()
-	var mapPos = TileMap.world_to_map(charPos)
+	var mapPos = myTileMap.world_to_map(charPos)
 	var playerBox = []
 	if (localPos == mapPos):
 		return
@@ -40,7 +41,7 @@ func update_localBox():
 				playerBox.append(Vector2(mapPos.x+i,mapPos.y+j))
 		for y in playerBox:
 			if (!localBox.keys().has(y)):
-				nodeify(y, TileMap.get_cellv(y))
+				nodeify(y, myTileMap.get_cellv(y))
 		for x in localBox.keys():
 			if (!playerBox.has(x) and !(localBox[x].get_groups().has("persistent"))):
 				de_nodeify(x)
@@ -51,7 +52,7 @@ func de_nodeify(mapPos):
 	if node == Char.highlighted_plus:
 		Char.highlighted_plus = null
 	node.get_tileType()
-	TileMap.set_cellv(mapPos, node.get_tileType())
+	myTileMap.set_cellv(mapPos, node.get_tileType())
 	localBox.erase(mapPos)
 	node.queue_free()
 
@@ -59,11 +60,11 @@ func de_nodeify(mapPos):
 func nodeify(mapPos, type):
 	if (type == -1):
 		return
-	TileMap.set_cellv(mapPos, -1)
+	myTileMap.set_cellv(mapPos, -1)
 	# TODO: make -1 not go to end of array, causes bug: sceneArray[-1] gets instanced
 	var newNode = sceneArray[type].instance()
 	add_child(newNode)
-	newNode.set_pos(TileMap.map_to_world(mapPos)+Vector2(10,10))
+	newNode.set_pos(myTileMap.map_to_world(mapPos)+Vector2(10,10))
 	newNode.set_tileMapPos(mapPos)
 	newNode.add_to_group("persistent")
 	# TODO: refactor these lines into the tile scripts
@@ -77,21 +78,21 @@ func nodeify(mapPos, type):
 
 # Takes in a global mouse position, returns the node at location or null if not in localBox
 func returnNode(globalPos):
-	var mapPos = TileMap.world_to_map(globalPos)
+	var mapPos = myTileMap.world_to_map(globalPos)
 	if (!localBox.keys().has(mapPos)):
-		nodeify(mapPos, TileMap.get_cellv(mapPos))
+		nodeify(mapPos, myTileMap.get_cellv(mapPos))
 	return localBox[mapPos]
 	
 func returnNode_by_mappos(mapPos):
 	if (!localBox.keys().has(mapPos)):
-		nodeify(mapPos, TileMap.get_cellv(mapPos))
+		nodeify(mapPos, myTileMap.get_cellv(mapPos))
 	return localBox[mapPos]
 
 func get_mapPos(pos):
-	return TileMap.world_to_map(pos)
+	return myTileMap.world_to_map(pos)
 	
 func get_worldPos(pos):
-	return TileMap.map_to_world(pos)
+	return myTileMap.map_to_world(pos)
 
 func placeTile(mapPos, tileType):
 	if (localBox.keys().has(mapPos)):
@@ -116,7 +117,7 @@ func get_adj_node(pos, dir):
 
 #func _select(which):
 #	var nodeBridge = bridgePattern0.instance()
-#	nodeBridge.set_pos(TileMap.map_to_world(which.get_tileMapPos())+Vector2(10,10))
+#	nodeBridge.set_pos(myTileMap.map_to_world(which.get_myTileMapPos())+Vector2(10,10))
 #	nodeBridge.add_to_group("outline")
 #	nodeBridge.init(self)
 #	which.add_child(nodeBridge)
@@ -130,6 +131,6 @@ func get_adj_node(pos, dir):
 
 
 func _ready():
-	tileSize = TileMap.get_cell_size()
+	tileSize = myTileMap.get_cell_size()
 	set_fixed_process(true)
 	set_process_input(true)

@@ -5,7 +5,6 @@ const WALK_SPEED = 100
 
 var velocity = Vector2()
 onready var NodeMap = get_node("../NodeMap")
-onready var TileMap = get_node("../NodeMap/TileMap")
 onready var ownedRocks = []
 onready var timer = get_node("Timer")
 onready var Resources = get_node("../HUD/Resources")
@@ -18,6 +17,7 @@ var selecting = false
 var targetDirection
 var isMoving
 var targetPos
+var bridgeState = 0
 
 func _fixed_process(delta):
 	var direction = Vector2()
@@ -37,6 +37,11 @@ func _fixed_process(delta):
 			else:
 				if node != highlighted_plus:
 					node.set_modulate(Color(.5,.5,.5))
+	elif selecting == false:
+		for node in adjNodes.values():
+			if node.get_tileType() == 0:
+				node.set_modulate(Color(1,1,1))
+		highlighted_plus = null
 	
 	# TODO: Here, play outline for selected bridge type
 	if (highlighted_plus != null):
@@ -49,7 +54,7 @@ func _fixed_process(delta):
 #			highlighted_plus.set_modulate(Color(.9,.9,.9))
 			#Wait a second, and then play outline for current bridge selection
 		
-	
+
 	if (Input.is_action_pressed("player_left")):
 	    direction.x = -1
 	elif (Input.is_action_pressed("player_right")):
@@ -67,6 +72,11 @@ func _fixed_process(delta):
 	# In the future, I'll check if the block in the direction would cause a collision
 	# And then just play an animation that moves over the tile and back really quick
 	if (is_colliding()):
+		# Check if colliding with LodeStone
+		# If so, move lodestone in direction of movement
+		var collider = get_collider()
+#		var col_pos = collider.get_collision_pos()
+		print(collider)
 		isMoving = false
 		# If the player is moving diagonally into a wall, he can get off the center of a tile because the normal pushes him back diagonally
 		if direction.x != 0 or direction.y !=0:
@@ -105,14 +115,16 @@ func _input(ev):
 		elif (ev.is_action_released("player_zoom")):
 			get_node("Camera2D").set_zoom(Vector2(1,1))
 		
+		if (ev.is_action_pressed("ui_change_state")):
+			if bridgeState == 0:
+				bridgeState = 1
+			elif bridgeState == 1:
+				bridgeState = 0
+		
 		# Building/selection stuff
 		if (ev.is_action_pressed("ui_shift")):
 			selecting = true
 		elif(ev.is_action_released("ui_shift")):
-			for node in adjNodes.values():
-				if node.get_tileType() == 0:
-					node.set_modulate(Color(1,1,1))
-			highlighted_plus = null
 			selecting = false
 		if(ev.is_action_pressed("ui_left") and selecting == true):
 			if adjNodes[NodeMap.WEST].get_tileType() == 0:
@@ -134,34 +146,33 @@ func _input(ev):
 
 		# Here, build new bridge type
 		if (ev.is_action_pressed("ui_accept") and selecting == true and highlighted_plus != null):
-			var map_pos = Vector2() #position of click in TileMap coordinates
-			var tileType # TileMap index at click location
 			var node = highlighted_plus
-			tileType = node.get_tileType()
-			var newNode
+			var adjNodes_H = NodeMap.get_adj_nodes(node.get_tileMapPos())
 			var adjNode
-			if (NodeMap.returnNode_by_mappos(highlighted_plus.get_tileMapPos()+NodeMap.SOUTH).get_tileType() == NodeMap.TILES.LAND):
+			if (adjNodes_H[NodeMap.SOUTH].get_tileType() == NodeMap.TILES.LAND):
 				print("Build Bridge")
 				var newBridge = bridgesArray[0].instance()
 				newBridge.init(NodeMap)
 				add_child(newBridge)
 				newBridge.play("build",highlighted_plus.get_tileMapPos())
+				return
 			# Check left and right of bridge
-			elif (NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(-1,0)).get_tileType() == NodeMap.TILES.BRIDGE):
-				var newBridge = bridgesArray[2].instance()
-				newBridge.init(NodeMap)
-				add_child(newBridge)
-				newBridge.play("build", node.get_tileMapPos(), Vector2(1,0))
-			elif (NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(1,0)).get_tileType() == NodeMap.TILES.BRIDGE or
-			NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(-1,0)).get_tileType() == NodeMap.TILES.BRIDGE):
-				if (NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(1,0)).get_tileType() == NodeMap.TILES.BRIDGE):
-					adjNode = Vector2(1,0)
-				elif (NodeMap.returnNode_by_mappos(node.get_tileMapPos()+Vector2(-1,0)).get_tileType() == NodeMap.TILES.BRIDGE):
-					adjNode = Vector2(-1,0)
+			if NodeMap.sourceTiles.has(adjNodes_H[NodeMap.WEST].get_tileType()):
+				adjNode = NodeMap.WEST
+			elif NodeMap.sourceTiles.has(adjNodes_H[NodeMap.EAST].get_tileType()):
+				adjNode = NodeMap.EAST
+			else:
+				return
+			if bridgeState == 0:
 				var newBridge = bridgesArray[1].instance()
 				newBridge.init(NodeMap)
 				add_child(newBridge)
 				newBridge.play("build", node.get_tileMapPos(), -adjNode)
+			elif bridgeState == 1:
+				var newBridge = bridgesArray[2].instance()
+				newBridge.init(NodeMap)
+				add_child(newBridge)
+				newBridge.play("build", node.get_tileMapPos(), adjNode)
 			highlighted_plus = null
 
 func _ready():
