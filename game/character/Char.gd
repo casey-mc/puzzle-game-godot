@@ -3,7 +3,6 @@ extends KinematicBody2D
 # TODO: Set this as a function of Tile size
 const WALK_SPEED = 100
 
-var velocity = Vector2()
 onready var NodeMap = get_node("../NodeMap")
 onready var ownedRocks = []
 onready var timer = get_node("Timer")
@@ -20,7 +19,6 @@ var targetPos
 var bridgeState = 0
 
 func _fixed_process(delta):
-	var direction = Vector2()
 	adjNodes = NodeMap.get_adj_nodes(NodeMap.get_mapPos(get_pos()))
 	if selecting == true:
 		for node in adjNodes.values():
@@ -54,7 +52,7 @@ func _fixed_process(delta):
 #			highlighted_plus.set_modulate(Color(.9,.9,.9))
 			#Wait a second, and then play outline for current bridge selection
 		
-
+	var direction = Vector2()
 	if (Input.is_action_pressed("player_left")):
 	    direction.x = -1
 	elif (Input.is_action_pressed("player_right")):
@@ -75,32 +73,29 @@ func _fixed_process(delta):
 		# Check if colliding with LodeStone
 		# If so, move lodestone in direction of movement
 		var collider = get_collider()
-#		var col_pos = collider.get_collision_pos()
 		print(collider)
+		if collider.is_in_group("lodestones"):
+			collider.myMove(targetDirection, get_collision_pos())
 		isMoving = false
 		# If the player is moving diagonally into a wall, he can get off the center of a tile because the normal pushes him back diagonally
-		if direction.x != 0 or direction.y !=0:
-			return
+#		if direction.x != 0 or direction.y !=0:
+#			return
+#		The following works unless the collision occures while the player is in the center of a tile but still colliding:
+#		targetPos = NodeMap.get_worldPos(NodeMap.get_mapPos(get_pos())) + (NodeMap.tileSize/2)
 		move(get_collision_normal())
 	# Move the character
-	if not isMoving and direction != Vector2():
+	elif !isMoving and direction != Vector2():
 		targetDirection = direction
-		# TargetPos is the center of a NodeMap tile in targetDirection
 		targetPos = NodeMap.get_worldPos(NodeMap.get_mapPos(get_pos())+targetDirection)+(NodeMap.tileSize/2)
-#		targetPos = get_pos() + NodeMap.tileSize * targetDirection
 		isMoving = true
 	elif isMoving:
-		velocity = WALK_SPEED * targetDirection.normalized() * delta
+		var velocity = WALK_SPEED * targetDirection.normalized() * delta
 		var pos = get_pos()
-		var distanceToTarget = Vector2(abs(targetPos.x-pos.x), abs(targetPos.y-pos.y))
-		if abs(velocity.x) > distanceToTarget.x:
-			velocity.x = distanceToTarget.x * targetDirection.x
+		if pos.distance_to(targetPos) > velocity.length():
+			move(velocity)
+		else:
+			move(targetPos-pos)
 			isMoving = false
-		if abs(velocity.y) > distanceToTarget.y:
-			velocity.y = distanceToTarget.y * targetDirection.y
-			isMoving = false
-		move(velocity)
-		
 	# Display UI
 	Resources.set_text(String(rockAmount))
 
