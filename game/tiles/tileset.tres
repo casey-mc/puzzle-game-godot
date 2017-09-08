@@ -68,4 +68,13 @@ extents = Vector2( 10, 10 )
 5/navigation_offset = Vector2( 10, 10 )
 5/shape_offset = Vector2( 0, 0 )
 5/shapes = [  ]
+6/name = "RandomBridge"
+6/texture = ExtResource( 1 )
+6/tex_offset = Vector2( 0, 0 )
+6/modulate = Color( 1, 1, 1, 1 )
+6/region = Rect2( 120, 0, 20, 20 )
+6/occluder_offset = Vector2( 10, 10 )
+6/navigation_offset = Vector2( 10, 10 )
+6/shape_offset = Vector2( 0, 0 )
+6/shapes = [  ]
 

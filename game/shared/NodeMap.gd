@@ -17,7 +17,7 @@ const NORTH = Vector2(0,-1)
 const SOUTH = Vector2(0,1)
 const EAST = Vector2(1,0)
 const WEST = Vector2(-1,0)
-onready var myTileMap = get_node("TileMap")
+onready var myTileMap = get_child(0)
 onready var Char = get_node("../Char")
 onready var localBox = {} #Dictionary defined as (x,y):Node where x and y are TileMap coordinates
 onready var localPos
