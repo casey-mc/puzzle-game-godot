@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=1]
+
+[ext_resource path="res://tiles/BaseTile.tscn" type="PackedScene" id=1]
+[ext_resource path="res://tiles/Tiles_Land.png" type="Texture" id=2]
+[ext_resource path="res://tiles/scripts/Rock.gd" type="Script" id=3]
+
+[node name="Beach" instance=ExtResource( 1 )]
+
+texture = ExtResource( 2 )
+region = true
+region_rect = Rect2( 48, 0, 16, 16 )
+script/script = ExtResource( 3 )
+tileType = 3
+
+

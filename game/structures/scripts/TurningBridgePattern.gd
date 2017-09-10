@@ -36,11 +36,19 @@ func build_bridge():
 	
 	NodeMap.placeTile(lastPos, NodeMap.TILES.TURNINGBRIDGETILE)
 
-	
-func play(anim, pos, orientation):
+func validate(pos, playerPos):
+	var adjNodes = NodeMap.get_adj_nodes(pos)
+	if NodeMap.sourceTiles.has(NodeMap.returnNode_by_mappos(playerPos).get_tileType()):
+		initialDirection = (pos-playerPos)
+		direction = (pos-playerPos)
+		return true
+	else:
+		return false
+
+func play(anim, pos):
 	if (anim == "build"):
-		initialDirection = orientation
-		direction = orientation
+#		initialDirection = orientation
+#		direction = orientation
 		lastPos = pos - direction
 		for i in range(0,LENGTH):
 			myTween.interpolate_callback(self, i*BUILD_SPEED, "build_bridge")

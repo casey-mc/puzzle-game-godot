@@ -49,7 +49,13 @@ func play(anim, pos):
 
 func init(nodeMapPath):
 	NodeMap = nodeMapPath
-	
+
+func validate(pos, playerPos):
+	var adjNodes = NodeMap.get_adj_nodes(pos)
+	if adjNodes[NodeMap.SOUTH].get_tileType() == NodeMap.TILES.BEACH:
+		return true
+	else:
+		return false
 
 func _ready():
 	pass

@@ -6,7 +6,7 @@ extends Sprite
 export var recAmount = 0
 # Either equals Bridge0, TurningBridge, or RandomBridge
 # Probably should make this array of bridgetypes an autoload singleton
-export var recType = "Bridge0"
+export var recType = "RegBridge"
 
 func _ready():
 	get_node("Timer").start()

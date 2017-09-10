@@ -8,11 +8,14 @@ extends Node2D
 # for scene in /tiles, preload
 # needs wall tile
 onready var sceneArray = [preload("res://tiles/Sea.tscn"),preload("res://tiles/Land.tscn"),
-							preload("res://tiles/Bridge.tscn"),preload("res://tiles/Rock.tscn"),
+							preload("res://tiles/Bridge.tscn"),preload("res://tiles/Beach.tscn"),
 							preload("res://tiles/SeaRocks.tscn"), preload("res://tiles/TurningBridgeTile.tscn"),
 							preload("res://tiles/RandomBridge.tscn")]
-enum TILES {SEA, LAND, BRIDGE, ROCK, SEAROCKS, TURNINGBRIDGETILE, RANDOMBRIDGE}
+enum TILES {SEA, LAND, BRIDGE, BEACH, SEAROCKS, TURNINGBRIDGETILE, RANDOMBRIDGE}
 const sourceTiles = [TILES.BRIDGE, TILES.TURNINGBRIDGETILE, TILES.RANDOMBRIDGE]
+enum BRIDGES {REG, TURNING, RANDOM}
+onready var bridgePatterns = [preload("res://structures/RegBridgePattern.tscn"), preload("res://structures/TurningBridgePattern.tscn"),
+								preload("res://structures/RandomBridgePattern.tscn")]
 const NORTH = Vector2(0,-1)
 const SOUTH = Vector2(0,1)
 const EAST = Vector2(1,0)
@@ -21,7 +24,6 @@ onready var myTileMap = get_child(0)
 onready var Char = get_node("../Char")
 onready var localBox = {} #Dictionary defined as (x,y):Node where x and y are TileMap coordinates
 onready var localPos
-onready var bridgePattern0 = preload("res://tiles/bridepattern0.tscn")
 var tileSize
 # NESW:
 onready var compass = [Vector2(0,-1),Vector2(1,0), Vector2(0,1), Vector2(-1,0)]
@@ -64,15 +66,10 @@ func nodeify(mapPos, type):
 	# TODO: make -1 not go to end of array, causes bug: sceneArray[-1] gets instanced
 	var newNode = sceneArray[type].instance()
 	add_child(newNode)
-	newNode.set_pos(myTileMap.map_to_world(mapPos)+Vector2(10,10))
+	newNode.set_pos(myTileMap.map_to_world(mapPos)+tileSize/2)
 	newNode.set_tileMapPos(mapPos)
+	# TODO: Not all nodes should be persistent
 	newNode.add_to_group("persistent")
-	# TODO: refactor these lines into the tile scripts
-#	if (newNode.get_tileType() == 2):
-#		newNode.add_to_group("persistent")
-	if (newNode.get_tileType() == 3):
-		newNode.get_node("Area2D").connect("body_enter",get_node("../Char"),"_ownRock",[newNode])
-#		newNode.add_to_group("persistent")
 	localBox[mapPos] = newNode
 	return
 

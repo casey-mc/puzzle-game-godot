@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=1]
 
 [ext_resource path="res://tiles/BaseTile.tscn" type="PackedScene" id=1]
-[ext_resource path="res://tiles/Tiles_Land.tex" type="Texture" id=2]
+[ext_resource path="res://tiles/Tiles_Land.png" type="Texture" id=2]
 
 [sub_resource type="RectangleShape2D" id=1]
 
@@ -12,7 +12,7 @@ extents = Vector2( 10, 10 )
 
 texture = ExtResource( 2 )
 region = true
-region_rect = Rect2( 100, 0, 20, 20 )
+region_rect = Rect2( 64, 0, 16, 16 )
 tileType = 5
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]

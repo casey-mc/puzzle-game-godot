@@ -1,11 +1,11 @@
 [gd_scene load_steps=4 format=1]
 
-[ext_resource path="res://tiles/Tiles_Land.tex" type="Texture" id=1]
+[ext_resource path="res://tiles/Tiles_Land.png" type="Texture" id=1]
 
-[sub_resource type="ConvexPolygonShape2D" id=1]
+[sub_resource type="RectangleShape2D" id=1]
 
 custom_solver_bias = 0.0
-points = Vector2Array( 10, -10, 10, 10, -10, 10, -10, -10 )
+extents = Vector2( 8, 8 )
 
 [sub_resource type="RectangleShape2D" id=2]
 
@@ -18,7 +18,7 @@ extents = Vector2( 10, 10 )
 
 texture = ExtResource( 1 )
 region = true
-region_rect = Rect2( 0, 0, 20, 20 )
+region_rect = Rect2( 0, 0, 16, 16 )
 
 [node name="StaticBody2D" type="StaticBody2D" parent="Sea"]
 
@@ -33,40 +33,39 @@ constant_angular_velocity = 0.0
 friction = 1.0
 bounce = 0.0
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Sea/StaticBody2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Sea/StaticBody2D"]
 
-build_mode = 0
-polygon = Vector2Array( -10, -10, -10, 10, 10, 10, 10, -10 )
-shape_range = Vector2( 0, 0 )
+shape = SubResource( 1 )
 trigger = false
+_update_shape_index = 0
 
 [node name="Land" type="Sprite" parent="."]
 
 transform/pos = Vector2( 40, 0 )
 texture = ExtResource( 1 )
 region = true
-region_rect = Rect2( 20, 0, 20, 20 )
+region_rect = Rect2( 16, 0, 16, 16 )
 
 [node name="Bridge" type="Sprite" parent="."]
 
 transform/pos = Vector2( 80, 0 )
 texture = ExtResource( 1 )
 region = true
-region_rect = Rect2( 40, 0, 20, 20 )
+region_rect = Rect2( 32, 0, 16, 16 )
 
-[node name="Rock" type="Sprite" parent="."]
+[node name="Beach" type="Sprite" parent="."]
 
 transform/pos = Vector2( 120, 0 )
 texture = ExtResource( 1 )
 region = true
-region_rect = Rect2( 60, 0, 20, 20 )
+region_rect = Rect2( 48, 0, 16, 16 )
 
 [node name="SeaRocks" type="Sprite" parent="."]
 
 transform/pos = Vector2( 160, 0 )
 texture = ExtResource( 1 )
 region = true
-region_rect = Rect2( 80, 0, 20, 20 )
+region_rect = Rect2( 64, 0, 16, 16 )
 
 [node name="StaticBody2D" type="StaticBody2D" parent="SeaRocks"]
 
@@ -92,13 +91,13 @@ _update_shape_index = 0
 transform/pos = Vector2( 200, 0 )
 texture = ExtResource( 1 )
 region = true
-region_rect = Rect2( 100, 0, 20, 20 )
+region_rect = Rect2( 80, 0, 16, 16 )
 
 [node name="RandomBridge" type="Sprite" parent="."]
 
 transform/pos = Vector2( 240, 0 )
 texture = ExtResource( 1 )
 region = true
-region_rect = Rect2( 120, 0, 20, 20 )
+region_rect = Rect2( 96, 0, 16, 16 )
 
 

@@ -6,12 +6,12 @@ const WALK_SPEED = 100
 onready var NodeMap = get_node("../NodeMap")
 onready var HUD = get_node("../HUD/HBoxContainer")
 var bridgeCount = {
-"Bridge0" : 0,
+"RegBridge" : 0,
 "TurningBridge" : 0,
 "RandomBridge" : 0,
 }
+onready var bridgeQueue = [NodeMap.BRIDGES.REG, NodeMap.BRIDGES.REG, NodeMap.BRIDGES.TURNING, NodeMap.BRIDGES.RANDOM]
 var highlighted_plus
-onready var bridgesArray = [preload("res://tiles/bridepattern0.tscn"), preload("res://tiles/TurningBridge.tscn"), preload("res://tiles/RandomBridgePattern.tscn")]
 var adjNodes
 var selecting = false
 var targetDirection
@@ -22,17 +22,37 @@ var bridgeState = 0
 func _fixed_process(delta):
 	# Draw UI
 	# This should all be event driven
-	for child in HUD.get_children():
-		child.get_node("Label").set_text(String(bridgeCount[child.get_name()]))
+#	display_bridgeQueue
+	var queueDisplay = get_node("BridgeQueue")
+	var max1
+	if bridgeQueue.size() < 3:
+		max1 = bridgeQueue.size()
+	else:
+		max1 = 3
+	for node in queueDisplay.get_children():
+		node.queue_free()
+	for x in range(max1-1,-1,-1):
+		var UI_Bridge
+		if bridgeQueue[x] == NodeMap.BRIDGES.REG:
+			UI_Bridge = load("res://UI/RegBridge.tscn")
+			queueDisplay.add_child(UI_Bridge.instance())
+		elif bridgeQueue[x] == NodeMap.BRIDGES.TURNING:
+			UI_Bridge = load("res://UI/TurningBridge.tscn")
+			queueDisplay.add_child(UI_Bridge.instance())
+		elif bridgeQueue[x] == NodeMap.BRIDGES.RANDOM:
+			UI_Bridge = load("res://UI/RandomBridge.tscn")
+			queueDisplay.add_child(UI_Bridge.instance())
+#	for child in HUD.get_children():
+#		child.get_node("Label").set_text(String(bridgeCount[child.get_name()]))
 #	for x in range(0,HUD.get_child_count()):
 #		print(HUD.get_child(x).get_type())
 #		HUD.get_child(x).get_node("Label").set_text(String(bridgeCount[HUD.get_child(x)]))
-	if bridgeState == 0:
-		HUD.get_node("TurningBridge").set_modulate(Color(1,1,1))
-		HUD.get_node("RandomBridge").set_modulate(Color(.5,.5,.7))
-	elif bridgeState == 1:
-		HUD.get_node("RandomBridge").set_modulate(Color(1,1,1))
-		HUD.get_node("TurningBridge").set_modulate(Color(.5,.5,.7))
+#	if bridgeState == 0:
+#		HUD.get_node("TurningBridge").set_modulate(Color(1,1,1))
+#		HUD.get_node("RandomBridge").set_modulate(Color(.5,.5,.7))
+#	elif bridgeState == 1:
+#		HUD.get_node("RandomBridge").set_modulate(Color(1,1,1))
+#		HUD.get_node("TurningBridge").set_modulate(Color(.5,.5,.7))
 		
 	
 	# Choose node character is selecting
@@ -159,36 +179,19 @@ func _input(ev):
 		# TODO: Eventually we'll need to clean up these bridge nodes
 		# Probably could just implement a signal on them that fires when they are complete
 		# Or maybe just a Tween at LENGTH + 1 that fires a self.queue_free()
-		if (ev.is_action_pressed("ui_accept") and selecting == true and highlighted_plus != null):
+		if (ev.is_action_pressed("ui_accept") and selecting == true and highlighted_plus != null and bridgeQueue.size() > 0):
 			var node = highlighted_plus
 			var adjNodes_H = NodeMap.get_adj_nodes(node.get_tileMapPos())
 			var adjNode = Vector2()
-			if (adjNodes_H[NodeMap.SOUTH].get_tileType() == NodeMap.TILES.LAND):
-				print("Build Bridge")
-				var newBridge = bridgesArray[0].instance()
-				newBridge.init(NodeMap)
-				add_child(newBridge)
-				newBridge.play("build",highlighted_plus.get_tileMapPos())
+			var newBridge = NodeMap.bridgePatterns[bridgeQueue[0]].instance()
+			newBridge.init(NodeMap)
+			add_child(newBridge)
+			if newBridge.validate(highlighted_plus.get_tileMapPos(), NodeMap.get_mapPos(get_pos())):
+				newBridge.play("build", highlighted_plus.get_tileMapPos())
+				bridgeQueue.pop_front()
 				highlighted_plus = null
-				return
-			# Check left and right of bridge
-			if NodeMap.sourceTiles.has(adjNodes_H[NodeMap.WEST].get_tileType()):
-				adjNode = NodeMap.WEST
-			elif NodeMap.sourceTiles.has(adjNodes_H[NodeMap.EAST].get_tileType()):
-				adjNode = NodeMap.EAST
-			if (adjNode != Vector2()):
-				if bridgeState == 0:
-					var newBridge = bridgesArray[1].instance()
-					newBridge.init(NodeMap)
-					add_child(newBridge)
-					newBridge.play("build", node.get_tileMapPos(), -adjNode)
-					highlighted_plus = null
-				elif bridgeState == 1:
-					var newBridge = bridgesArray[2].instance()
-					newBridge.init(NodeMap)
-					add_child(newBridge)
-					newBridge.play("build", node.get_tileMapPos(), adjNode)
-					highlighted_plus = null
+			else:
+				newBridge.queue_free()
 
 func incr_res(recType, recAmount):
 	for x in HUD.get_children():
